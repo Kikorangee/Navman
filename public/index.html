@@ -1,0 +1,974 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unified AU + NZ Safety Dashboard</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --card: #ffffff;
+      --text: #16212f;
+      --muted: #5b6d86;
+      --line: #d6deea;
+      --accent: #0f6abf;
+      --accent-2: #0a4d89;
+      --good: #136f2d;
+      --bad: #9a1c1c;
+    }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top right, #dcecff 0%, var(--bg) 45%);
+      color: var(--text);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .wrap {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 8px 20px rgba(10, 35, 66, 0.07);
+    }
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .tab-btn {
+      background: #dce8f8;
+      color: #1b3551;
+      border: 1px solid #b8cde7;
+    }
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .tab-panel {
+      display: none;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+    .sub {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(100px, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+    .basic-controls {
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+    }
+    .advanced-controls {
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+    }
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    input, select {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+    }
+    .actions {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .primary-actions button {
+      background: linear-gradient(180deg, #0f6abf, #0a4d89);
+    }
+    .secondary-actions button {
+      background: #577a9c;
+    }
+    .details-card {
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f8fbff;
+      padding: 10px;
+    }
+    .details-card summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: #20496f;
+      margin-bottom: 8px;
+    }
+    .details-card[open] summary {
+      margin-bottom: 10px;
+    }
+    .frame-wrap {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      min-height: 78vh;
+      background: #fff;
+    }
+    .frame-wrap iframe {
+      width: 100%;
+      height: 78vh;
+      border: 0;
+      display: block;
+      background: #fff;
+    }
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 9px 12px;
+      cursor: pointer;
+      color: #fff;
+      background: var(--accent);
+      font-weight: 600;
+    }
+    button:hover {
+      background: var(--accent-2);
+    }
+    .status {
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #f8fbff;
+      white-space: pre-wrap;
+      font-size: 13px;
+    }
+    .status.ok { color: var(--good); }
+    .status.err { color: var(--bad); }
+    .table-wrap {
+      margin-top: 12px;
+      overflow: auto;
+      max-height: 62vh;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      border-bottom: 1px solid #edf2f8;
+      padding: 7px 8px;
+      text-align: left;
+    }
+    th {
+      background: #eef5ff;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .insights {
+      margin-top: 16px;
+    }
+    .summary-box {
+      border: 1px solid var(--line);
+      background: #f7fbff;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 13px;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+    }
+    .insight-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr 1fr;
+    }
+    .mini .table-wrap {
+      max-height: 280px;
+      margin-top: 6px;
+    }
+    .mini h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+    @media (max-width: 900px) {
+      .controls {
+        grid-template-columns: 1fr 1fr;
+      }
+      .basic-controls {
+        grid-template-columns: 1fr 1fr;
+      }
+      .advanced-controls {
+        grid-template-columns: 1fr 1fr;
+      }
+      .insight-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="tab-bar">
+      <button id="tabOps" class="tab-btn active">Unified Dashboard</button>
+      <button id="tabGeo" class="tab-btn">Geotab Runner</button>
+    </div>
+
+    <div id="panelOps" class="tab-panel active">
+      <div class="card">
+        <h1>Unified Safety, Speeding, and Idling</h1>
+        <p class="sub">Single dashboard for Navman (Australia) + Geotab (New Zealand), with one combined view.</p>
+
+        <div class="controls basic-controls">
+          <label>Data source
+            <select id="source">
+              <option value="both" selected>both</option>
+              <option value="navman">navman</option>
+              <option value="geotab">geotab</option>
+            </select>
+          </label>
+          <label>From (UTC)
+            <input id="from" type="datetime-local" />
+          </label>
+          <label>To (UTC)
+            <input id="to" type="datetime-local" />
+          </label>
+          <label>Speed threshold (kph)
+            <input id="speedThreshold" type="number" min="0" step="1" value="100" />
+          </label>
+          <label>Idle threshold (minutes)
+            <input id="idleThreshold" type="number" min="0" step="1" value="5" />
+          </label>
+          <label>Top N rows
+            <input id="topN" type="number" min="1" step="1" value="10" />
+          </label>
+          <label>Driver score threshold
+            <input id="scoreThreshold" type="number" min="0" step="1" value="10" />
+          </label>
+        </div>
+
+        <div class="actions primary-actions">
+          <button id="btnLast24h">Last 24h</button>
+          <button id="btnLast7d">Last 7d</button>
+          <button id="btnToday">Today</button>
+          <button id="btnYesterday">Yesterday</button>
+          <button id="btnSafety">Load Safety (All)</button>
+          <button id="btnSpeed">Load Speeding</button>
+          <button id="btnIdle">Load Idling</button>
+          <button id="btnInsights">Update Insights</button>
+        </div>
+
+        <details class="details-card">
+          <summary>Advanced Filters, Sessions, and Geotab Login</summary>
+          <div class="controls advanced-controls">
+            <label>Session ID (optional)
+              <input id="sid" type="text" placeholder="Paste new SessionId" />
+            </label>
+            <label>Vehicle IDs filter (optional CSV)
+              <input id="vehicles" type="text" placeholder="id1,id2" />
+            </label>
+            <label>Driver IDs filter (optional CSV)
+              <input id="drivers" type="text" placeholder="id1,id2" />
+            </label>
+            <label>Geotab server
+              <input id="geoServer" type="text" placeholder="my.geotab.com" />
+            </label>
+            <label>Geotab database
+              <input id="geoDatabase" type="text" placeholder="database" />
+            </label>
+            <label>Geotab username
+              <input id="geoUser" type="text" placeholder="username" />
+            </label>
+            <label>Geotab password
+              <input id="geoPass" type="password" placeholder="leave blank to keep current" />
+            </label>
+            <label>Weight: Speeding
+              <input id="wSpeeding" type="number" min="0" step="0.5" value="3" />
+            </label>
+            <label>Weight: Harsh Braking
+              <input id="wBraking" type="number" min="0" step="0.5" value="2" />
+            </label>
+            <label>Weight: Harsh Accel
+              <input id="wAccel" type="number" min="0" step="0.5" value="2" />
+            </label>
+            <label>Weight: Harsh Cornering
+              <input id="wCornering" type="number" min="0" step="0.5" value="2" />
+            </label>
+            <label>Weight: Stop Sign
+              <input id="wStopSign" type="number" min="0" step="0.5" value="4" />
+            </label>
+          </div>
+          <div class="actions secondary-actions">
+            <button id="btnSession">Set Navman Session</button>
+            <button id="btnLogoff">Logoff Navman</button>
+            <button id="btnGeoSave">Save Geotab</button>
+            <button id="btnGeoAuth">Test Geotab Login</button>
+            <button id="btnGeoLogoff">Logoff Geotab</button>
+          </div>
+        </details>
+
+      <div id="status" class="status">Ready.</div>
+      <div class="table-wrap">
+        <table id="tbl">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="insights">
+        <div id="summary" class="summary-box">Insights will appear here after you load data.</div>
+        <div class="insight-grid">
+          <div class="mini">
+            <h3>Driver Safety Scoreboard</h3>
+            <div class="table-wrap">
+              <table id="driverTbl">
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="mini">
+            <h3>Highest Total Idling</h3>
+            <div class="table-wrap">
+              <table id="idleTotalTbl">
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="mini">
+            <h3>Most Frequent Idling</h3>
+            <div class="table-wrap">
+              <table id="idleFreqTbl">
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="mini">
+            <h3>Speeding Above Threshold (Drivers)</h3>
+            <div class="table-wrap">
+              <table id="speedDriverTbl">
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <div id="panelGeo" class="tab-panel">
+      <div class="card">
+        <h1>Geotab API Runner</h1>
+        <p class="sub">Your full Geotab runner is on this second tab so the main dashboard stays clean.</p>
+        <div class="frame-wrap">
+          <iframe id="geoRunnerFrame" src="/geotab_api_runner_fixed_auth_date_pickers.html" title="Geotab API Runner"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const sourceEl = document.getElementById('source');
+    const tabOpsBtn = document.getElementById('tabOps');
+    const tabGeoBtn = document.getElementById('tabGeo');
+    const panelOps = document.getElementById('panelOps');
+    const panelGeo = document.getElementById('panelGeo');
+    const thead = document.querySelector('#tbl thead');
+    const tbody = document.querySelector('#tbl tbody');
+    const buttons = Array.from(document.querySelectorAll('button'));
+    const summaryEl = document.getElementById('summary');
+    const appState = { safety: [], speed: [], idle: [] };
+    const SOURCE_TIMEOUT_MS = {
+      navmanMin: 90000,
+      navmanMax: 420000,
+      geotab: 45000
+    };
+    let busy = false;
+
+    function setStatus(msg, ok = true) {
+      statusEl.textContent = msg;
+      statusEl.className = `status ${ok ? 'ok' : 'err'}`;
+    }
+
+    function setBusy(flag) {
+      busy = flag;
+      buttons.forEach(btn => { btn.disabled = flag; });
+    }
+
+    function activateTab(tabName) {
+      const opsActive = tabName === 'ops';
+      tabOpsBtn.classList.toggle('active', opsActive);
+      tabGeoBtn.classList.toggle('active', !opsActive);
+      panelOps.classList.toggle('active', opsActive);
+      panelGeo.classList.toggle('active', !opsActive);
+      setStatus(opsActive ? 'Unified dashboard tab active.' : 'Geotab runner tab active.');
+    }
+
+    async function guarded(fn) {
+      if (busy) {
+        setStatus('A request is already running. Please wait for it to finish.', false);
+        return;
+      }
+      setBusy(true);
+      try {
+        await fn();
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function selectedSource() {
+      const raw = String(sourceEl.value || '').toLowerCase().trim();
+      if (raw === 'navman' || raw === 'geotab' || raw === 'both') return raw;
+      sourceEl.value = 'both';
+      return 'both';
+    }
+
+    function enabledSources() {
+      const s = selectedSource();
+      if (s === 'navman') return ['navman'];
+      if (s === 'geotab') return ['geotab'];
+      return ['navman', 'geotab'];
+    }
+
+    function navmanTimeoutMs() {
+      const start = asIso('from');
+      const end = asIso('to');
+      if (!start || !end) return SOURCE_TIMEOUT_MS.navmanMin;
+      const spanMs = Math.max(0, new Date(end) - new Date(start));
+      const spanDays = Math.max(1, spanMs / 86400000);
+      const scaled = Math.round(90000 + (spanDays * 9000));
+      return Math.max(SOURCE_TIMEOUT_MS.navmanMin, Math.min(SOURCE_TIMEOUT_MS.navmanMax, scaled));
+    }
+
+    function withSource(rows, source, country) {
+      return (rows || []).map(r => ({
+        ...r,
+        Source: r.Source || source,
+        Country: r.Country || country
+      }));
+    }
+
+    function formatForInput(date) {
+      const pad = n => String(n).padStart(2, '0');
+      const y = date.getUTCFullYear();
+      const m = pad(date.getUTCMonth() + 1);
+      const d = pad(date.getUTCDate());
+      const hh = pad(date.getUTCHours());
+      const mm = pad(date.getUTCMinutes());
+      return `${y}-${m}-${d}T${hh}:${mm}`;
+    }
+
+    function asIso(inputId) {
+      const value = document.getElementById(inputId).value;
+      if (!value) return '';
+      const dt = new Date(value);
+      return Number.isNaN(dt.valueOf()) ? '' : dt.toISOString();
+    }
+
+    function setTimeRange(range) {
+      const now = new Date();
+      let from = new Date(now.getTime() - 24 * 3600_000);
+      let to = now;
+
+      if (range === 'last7d') {
+        from = new Date(now.getTime() - 7 * 24 * 3600_000);
+      } else if (range === 'today') {
+        from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
+      } else if (range === 'yesterday') {
+        const y = new Date(now.getTime() - 24 * 3600_000);
+        from = new Date(Date.UTC(y.getUTCFullYear(), y.getUTCMonth(), y.getUTCDate(), 0, 0, 0));
+        to = new Date(Date.UTC(y.getUTCFullYear(), y.getUTCMonth(), y.getUTCDate(), 23, 59, 59));
+      }
+
+      document.getElementById('from').value = formatForInput(from);
+      document.getElementById('to').value = formatForInput(to);
+      setStatus(`Date range set: ${range}`);
+    }
+
+    function draw(rows, columns) {
+      if (!rows.length) {
+        thead.innerHTML = '';
+        tbody.innerHTML = '<tr><td>No rows returned.</td></tr>';
+        return;
+      }
+      thead.innerHTML = `<tr>${columns.map(c => `<th>${c}</th>`).join('')}</tr>`;
+      tbody.innerHTML = rows.map(row =>
+        `<tr>${columns.map(c => `<td>${row[c] ?? ''}</td>`).join('')}</tr>`
+      ).join('');
+    }
+
+    function drawTable(tableId, rows, columns) {
+      const table = document.getElementById(tableId);
+      const h = table.querySelector('thead');
+      const b = table.querySelector('tbody');
+      if (!rows.length) {
+        h.innerHTML = '';
+        b.innerHTML = '<tr><td>No rows.</td></tr>';
+        return;
+      }
+      h.innerHTML = `<tr>${columns.map(c => `<th>${c}</th>`).join('')}</tr>`;
+      b.innerHTML = rows.map(row =>
+        `<tr>${columns.map(c => `<td>${row[c] ?? ''}</td>`).join('')}</tr>`
+      ).join('');
+    }
+
+    function num(v) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function guidOrBlank(v) {
+      const s = String(v || '').trim();
+      if (!s || s === '00000000-0000-0000-0000-000000000000') return '';
+      return s;
+    }
+
+    function classifyType(row) {
+      const t = String(row.EventType || '').toLowerCase();
+      const s = String(row.EventSubType || '').toUpperCase();
+      if (t.includes('speed') || s.includes('SPEED') || s.includes('OVERSPEED') || s.includes('POSTED_SPEED')) return 'Speeding';
+      if (t.includes('brak') || s.includes('BRAK')) return 'Harsh Braking';
+      if (t.includes('accel') || s.includes('ACCEL')) return 'Harsh Acceleration';
+      if (t.includes('corner') || s.includes('CORNER')) return 'Harsh Cornering';
+      if (t.includes('stop')) return 'Stop Sign Violation';
+      return 'Other';
+    }
+
+    function updateInsights() {
+      const speedThreshold = num(document.getElementById('speedThreshold').value);
+      const idleThreshold = num(document.getElementById('idleThreshold').value);
+      const topN = Math.max(1, Math.floor(num(document.getElementById('topN').value) || 10));
+      const scoreThreshold = num(document.getElementById('scoreThreshold').value);
+      const wSpeeding = num(document.getElementById('wSpeeding').value);
+      const wBraking = num(document.getElementById('wBraking').value);
+      const wAccel = num(document.getElementById('wAccel').value);
+      const wCornering = num(document.getElementById('wCornering').value);
+      const wStopSign = num(document.getElementById('wStopSign').value);
+      const driverFilter = document.getElementById('drivers').value
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+      const useDriverFilter = driverFilter.length > 0;
+      const allowDriver = d => !useDriverFilter || driverFilter.includes(d);
+
+      const speedFiltered = appState.speed.filter(r => num(r.PeakSpeedKph) >= speedThreshold);
+      const idleFiltered = appState.idle.filter(r => num(r.DurationMinutes) >= idleThreshold);
+
+      const driverMap = new Map();
+      for (const row of appState.safety) {
+        const source = String(row.Source || 'Unknown');
+        const country = String(row.Country || '');
+        const driverId = guidOrBlank(row.DriverID);
+        if (driverId && !allowDriver(driverId)) continue;
+        const driverName = row.DriverName || row.Driver || 'Unknown';
+        const driverKey = `${source}|${driverId || `NAME:${driverName}`}`;
+        const kind = classifyType(row);
+        if (kind === 'Speeding' && num(row.PeakSpeedKph) > 0 && num(row.PeakSpeedKph) < speedThreshold) continue;
+        if (!driverMap.has(driverKey)) {
+          driverMap.set(driverKey, {
+            Source: source,
+            Country: country,
+            DriverID: driverId,
+            DriverName: driverName,
+            Speeding: 0,
+            HarshBraking: 0,
+            HarshAcceleration: 0,
+            HarshCornering: 0,
+            StopSignViolation: 0,
+            Total: 0,
+            Score: 0,
+            Flagged: ''
+          });
+        }
+        const agg = driverMap.get(driverKey);
+        if (!agg.DriverName && (row.DriverName || row.Driver)) agg.DriverName = row.DriverName || row.Driver;
+        if (kind === 'Speeding') agg.Speeding += 1;
+        if (kind === 'Harsh Braking') agg.HarshBraking += 1;
+        if (kind === 'Harsh Acceleration') agg.HarshAcceleration += 1;
+        if (kind === 'Harsh Cornering') agg.HarshCornering += 1;
+        if (kind === 'Stop Sign Violation') agg.StopSignViolation += 1;
+        agg.Total += 1;
+      }
+      const driverRows = Array.from(driverMap.values())
+        .map(r => {
+          const score = (r.Speeding * wSpeeding) +
+            (r.HarshBraking * wBraking) +
+            (r.HarshAcceleration * wAccel) +
+            (r.HarshCornering * wCornering) +
+            (r.StopSignViolation * wStopSign);
+          return {
+            ...r,
+            Score: score.toFixed(1),
+            Flagged: score >= scoreThreshold ? 'YES' : ''
+          };
+        })
+        .sort((a, b) => num(b.Score) - num(a.Score) || b.Total - a.Total)
+        .slice(0, topN);
+      drawTable('driverTbl', driverRows, [
+        'Source', 'DriverName', 'Score', 'Flagged', 'Total', 'Speeding', 'HarshBraking',
+        'HarshAcceleration', 'HarshCornering', 'StopSignViolation'
+      ]);
+
+      const idleMap = new Map();
+      for (const row of idleFiltered) {
+        const source = String(row.Source || 'Unknown');
+        const country = String(row.Country || '');
+        const key = `${source}|${row.VehicleID || row.VehicleName || 'Unknown'}`;
+        if (!idleMap.has(key)) {
+          idleMap.set(key, {
+            Source: source,
+            Country: country,
+            VehicleID: row.VehicleID || '',
+            VehicleName: row.VehicleName || '',
+            Registration: row.Registration || '',
+            TotalIdleMinutes: 0,
+            Intervals: 0
+          });
+        }
+        const agg = idleMap.get(key);
+        agg.TotalIdleMinutes += num(row.DurationMinutes);
+        agg.Intervals += 1;
+      }
+      const idleRows = Array.from(idleMap.values());
+      const highestIdle = idleRows
+        .map(r => ({ ...r, TotalIdleMinutes: r.TotalIdleMinutes.toFixed(1) }))
+        .sort((a, b) => num(b.TotalIdleMinutes) - num(a.TotalIdleMinutes))
+        .slice(0, topN);
+      const frequentIdle = idleRows
+        .map(r => ({ ...r, TotalIdleMinutes: r.TotalIdleMinutes.toFixed(1) }))
+        .sort((a, b) => b.Intervals - a.Intervals)
+        .slice(0, topN);
+
+      drawTable('idleTotalTbl', highestIdle, [
+        'Source', 'VehicleName', 'Registration', 'VehicleID', 'TotalIdleMinutes', 'Intervals'
+      ]);
+      drawTable('idleFreqTbl', frequentIdle, [
+        'Source', 'VehicleName', 'Registration', 'VehicleID', 'Intervals', 'TotalIdleMinutes'
+      ]);
+
+      const speedDriverMap = new Map();
+      for (const row of speedFiltered) {
+        const source = String(row.Source || 'Unknown');
+        const country = String(row.Country || '');
+        const driverId = guidOrBlank(row.DriverID);
+        if (driverId && !allowDriver(driverId)) continue;
+        const driverName = row.DriverName || row.Driver || 'Unknown';
+        const driverKey = `${source}|${driverId || `NAME:${driverName}`}`;
+        if (!speedDriverMap.has(driverKey)) {
+          speedDriverMap.set(driverKey, {
+            Source: source,
+            Country: country,
+            DriverID: driverId,
+            DriverName: driverName,
+            SpeedEvents: 0,
+            MaxPeakSpeedKph: 0
+          });
+        }
+        const agg = speedDriverMap.get(driverKey);
+        if (!agg.DriverName && (row.DriverName || row.Driver)) agg.DriverName = row.DriverName || row.Driver;
+        agg.SpeedEvents += 1;
+        agg.MaxPeakSpeedKph = Math.max(agg.MaxPeakSpeedKph, num(row.PeakSpeedKph));
+      }
+      const speedDriverRows = Array.from(speedDriverMap.values())
+        .map(r => ({ ...r, MaxPeakSpeedKph: r.MaxPeakSpeedKph.toFixed(1) }))
+        .sort((a, b) => b.SpeedEvents - a.SpeedEvents)
+        .slice(0, topN);
+      drawTable('speedDriverTbl', speedDriverRows, [
+        'Source', 'DriverName', 'SpeedEvents', 'MaxPeakSpeedKph'
+      ]);
+
+      const flaggedDrivers = driverRows.filter(r => r.Flagged === 'YES').length;
+      const countBySource = (rows, sourceName) => rows.filter(r => String(r.Source || '').toLowerCase().includes(sourceName)).length;
+      summaryEl.textContent =
+        `Thresholds in use:\n` +
+        `- Speed threshold: ${speedThreshold} kph\n` +
+        `- Idle threshold: ${idleThreshold} minutes\n` +
+        `- Driver score threshold: ${scoreThreshold}\n` +
+        `Score formula:\n` +
+        `- Score = Speeding*${wSpeeding} + HarshBraking*${wBraking} + HarshAcceleration*${wAccel} + HarshCornering*${wCornering} + StopSign*${wStopSign}\n` +
+        `Loaded rows:\n` +
+        `- Safety rows: ${appState.safety.length} (Navman ${countBySource(appState.safety, 'navman')}, Geotab ${countBySource(appState.safety, 'geotab')})\n` +
+        `- Speed rows: ${appState.speed.length} (Navman ${countBySource(appState.speed, 'navman')}, Geotab ${countBySource(appState.speed, 'geotab')})\n` +
+        `- Idle rows: ${appState.idle.length} (Navman ${countBySource(appState.idle, 'navman')}, Geotab ${countBySource(appState.idle, 'geotab')})\n` +
+        `Filtered rows:\n` +
+        `- Speed >= threshold: ${speedFiltered.length}\n` +
+        `- Idle >= threshold: ${idleFiltered.length}\n` +
+        `- Drivers flagged: ${flaggedDrivers}`;
+    }
+
+    function buildQuery(extra = {}) {
+      const params = new URLSearchParams();
+      const start = asIso('from');
+      const end = asIso('to');
+      if (start) params.set('start', start);
+      if (end) params.set('end', end);
+
+      const vehicles = document.getElementById('vehicles').value.trim();
+      const drivers = document.getElementById('drivers').value.trim();
+      if (vehicles) params.set('vehicles', vehicles);
+      if (drivers) params.set('drivers', drivers);
+
+      Object.entries(extra).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') params.set(k, String(v));
+      });
+      return params.toString();
+    }
+
+    async function api(url, options) {
+      const res = await fetch(url, options);
+      const text = await res.text();
+      let json;
+      try { json = JSON.parse(text); } catch (_err) {
+        throw new Error(text || `HTTP ${res.status}`);
+      }
+      if (!res.ok || json.ok === false) {
+        const code = json.code ? ` (${json.code})` : '';
+        throw new Error(`${json.message || 'Request failed'}${code}`);
+      }
+      return json;
+    }
+
+    async function apiWithRetry(url, options, retries = 1, delayMs = 1200) {
+      let lastErr;
+      for (let i = 0; i <= retries; i += 1) {
+        try {
+          return await api(url, options);
+        } catch (err) {
+          lastErr = err;
+          const msg = String(err?.message || '');
+          const transient = msg.includes('Failed to fetch') || msg.toLowerCase().includes('networkerror');
+          if (!transient || i >= retries) break;
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+      }
+      throw lastErr;
+    }
+
+    function withTimeout(promise, ms, label) {
+      let timer;
+      return Promise.race([
+        promise.finally(() => clearTimeout(timer)),
+        new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error(`${label} timed out after ${Math.round(ms / 1000)}s`)), ms);
+        })
+      ]);
+    }
+
+    async function setSession() {
+      const sid = document.getElementById('sid').value.trim();
+      if (!sid) {
+        setStatus('Enter SessionId first.', false);
+        return;
+      }
+      await api('/api/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sid })
+      });
+      setStatus('Session updated.');
+    }
+
+    async function logoffSession() {
+      await api('/api/logoff', { method: 'POST' });
+      setStatus('Session cleared and DoLogoff sent.');
+    }
+
+    async function saveGeotabConfig(authAfterSave = false) {
+      const payload = {
+        server: document.getElementById('geoServer').value.trim(),
+        database: document.getElementById('geoDatabase').value.trim(),
+        userName: document.getElementById('geoUser').value.trim(),
+        password: document.getElementById('geoPass').value,
+        authenticate: authAfterSave
+      };
+      const result = await api('/api/geotab/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      document.getElementById('geoPass').value = '';
+      setStatus(`Geotab settings saved. Session active: ${result.Geotab?.SessionSet ? 'yes' : 'no'}`);
+    }
+
+    async function authGeotab() {
+      await saveGeotabConfig(true);
+      await api('/api/geotab/auth', { method: 'POST' });
+      setStatus('Geotab login successful.');
+    }
+
+    async function logoffGeotab() {
+      await api('/api/geotab/logoff', { method: 'POST' });
+      setStatus('Geotab session cleared.');
+    }
+
+    async function fetchBySource(kind, queryString) {
+      const sources = enabledSources();
+      const jobs = sources.map(src => {
+        let endpoint = '';
+        let label = '';
+        let country = '';
+
+        if (src === 'navman') {
+          endpoint = `/api/${kind}?${queryString}`;
+          label = 'Navman AU';
+          country = 'Australia';
+        } else {
+          endpoint = `/api/geotab/${kind}?${queryString}`;
+          label = 'Geotab NZ';
+          country = 'New Zealand';
+        }
+
+        const timeoutMs = src === 'navman' ? navmanTimeoutMs() : SOURCE_TIMEOUT_MS.geotab;
+        const retries = src === 'navman' ? 1 : 0;
+        return withTimeout(apiWithRetry(endpoint, undefined, retries), timeoutMs, label)
+          .then(data => ({ ok: true, src, label, country, data }))
+          .catch(err => ({ ok: false, src, label, country, err }));
+      });
+
+      const settled = await Promise.all(jobs);
+      const rows = [];
+      const messages = [];
+      const errors = [];
+
+      for (const item of settled) {
+        if (item.ok) {
+          const srcRows = withSource(item.data.rows, item.label, item.country);
+          rows.push(...srcRows);
+          messages.push(`${item.label}: ${item.data.count}${item.data.meta?.source ? ` (${item.data.meta.source})` : ''}${item.data.cached ? ' [cached]' : ''}`);
+        } else {
+          errors.push(`${item.src === 'navman' ? 'Navman' : 'Geotab'} failed: ${item.err.message}`);
+        }
+      }
+
+      if (!rows.length && errors.length) {
+        throw new Error(errors.join(' | '));
+      }
+
+      return { rows, messages, errors };
+    }
+
+    async function loadSafety() {
+      const navHint = enabledSources().includes('navman') ? ` Navman timeout ${Math.round(navmanTimeoutMs() / 1000)}s.` : '';
+      setStatus(`Loading safety events (${selectedSource()})...${navHint}`);
+      const q = buildQuery({ eventType: -1, requestType: 'Vehicle' });
+      const data = await fetchBySource('safety-events', q);
+      appState.safety = data.rows;
+      const msg = `Safety events loaded: ${data.rows.length} | ${data.messages.join(' | ')}`;
+      setStatus(data.errors.length ? `${msg}\n${data.errors.join(' | ')}` : msg, data.errors.length === 0);
+      draw(appState.safety, [
+        'Source', 'Country', 'EventDateTime', 'EventType', 'VehicleID', 'Driver',
+        'PeakSpeedKph', 'PostedSpeedKph', 'DurationSeconds', 'Location'
+      ]);
+      updateInsights();
+    }
+
+    async function loadSpeeding() {
+      const navHint = enabledSources().includes('navman') ? ` Navman timeout ${Math.round(navmanTimeoutMs() / 1000)}s.` : '';
+      setStatus(`Loading speeding events (${selectedSource()})...${navHint}`);
+      const q = buildQuery();
+      const data = await fetchBySource('speeding-events', q);
+      appState.speed = data.rows;
+      const speedThreshold = num(document.getElementById('speedThreshold').value);
+      const thresholdRows = appState.speed.filter(r => num(r.PeakSpeedKph) >= speedThreshold);
+      const msg = `Speeding loaded: ${appState.speed.length} | >= ${speedThreshold} kph: ${thresholdRows.length} | ${data.messages.join(' | ')}`;
+      setStatus(data.errors.length ? `${msg}\n${data.errors.join(' | ')}` : msg, data.errors.length === 0);
+      draw(thresholdRows, [
+        'Source', 'Country', 'EventDateTime', 'VehicleID', 'Driver', 'PeakSpeedKph',
+        'PostedSpeedKph', 'DurationSeconds', 'Location'
+      ]);
+      updateInsights();
+    }
+
+    async function loadIdling() {
+      const navHint = enabledSources().includes('navman') ? ` Navman timeout ${Math.round(navmanTimeoutMs() / 1000)}s.` : '';
+      setStatus(`Loading idling events (${selectedSource()})...${navHint}`);
+      const q = buildQuery();
+      const data = await fetchBySource('idle-events', q);
+      appState.idle = data.rows;
+      const idleThreshold = num(document.getElementById('idleThreshold').value);
+      const thresholdRows = appState.idle.filter(r => num(r.DurationMinutes) >= idleThreshold);
+      const msg = `Idle intervals loaded: ${appState.idle.length} | >= ${idleThreshold} min: ${thresholdRows.length} | ${data.messages.join(' | ')}`;
+      setStatus(data.errors.length ? `${msg}\n${data.errors.join(' | ')}` : msg, data.errors.length === 0);
+      draw(thresholdRows, [
+        'Source', 'Country', 'VehicleName', 'Registration', 'StartTime', 'EndTime',
+        'DurationMinutes', 'Location', 'Latitude', 'Longitude'
+      ]);
+      updateInsights();
+    }
+
+    async function init() {
+      const now = new Date();
+      const start = new Date(now.getTime() - 24 * 3600_000);
+      document.getElementById('from').value = formatForInput(start);
+      document.getElementById('to').value = formatForInput(now);
+
+      try {
+        const defaults = await api('/api/defaults');
+        document.getElementById('geoServer').value = defaults.Geotab?.Server || '';
+        document.getElementById('geoDatabase').value = defaults.Geotab?.Database || '';
+        document.getElementById('geoUser').value = defaults.Geotab?.UserName || '';
+
+        const navStatus = defaults.Navman?.SessionSet ? 'ready' : 'not set';
+        const geoStatus = defaults.Geotab?.SessionSet ? 'ready' : (defaults.Geotab?.Configured ? 'configured (not logged in)' : 'not configured');
+        const msg = `Ready. Navman: ${navStatus}. Geotab: ${geoStatus}.`;
+        setStatus(msg, defaults.Navman?.SessionSet || defaults.Geotab?.Configured);
+      } catch (err) {
+        setStatus(`Failed to load defaults: ${err.message}`, false);
+      }
+    }
+
+    document.getElementById('btnSession').addEventListener('click', () => guarded(() => setSession()).catch(err => setStatus(err.message, false)));
+    document.getElementById('btnGeoSave').addEventListener('click', () => guarded(() => saveGeotabConfig(false)).catch(err => setStatus(err.message, false)));
+    document.getElementById('btnGeoAuth').addEventListener('click', () => guarded(() => authGeotab()).catch(err => setStatus(err.message, false)));
+    document.getElementById('btnLogoff').addEventListener('click', () => guarded(() => logoffSession()).catch(err => setStatus(err.message, false)));
+    document.getElementById('btnGeoLogoff').addEventListener('click', () => guarded(() => logoffGeotab()).catch(err => setStatus(err.message, false)));
+    document.getElementById('btnSafety').addEventListener('click', () => guarded(() => loadSafety()).catch(err => setStatus(err.message, false)));
+    document.getElementById('btnSpeed').addEventListener('click', () => guarded(() => loadSpeeding()).catch(err => setStatus(err.message, false)));
+    document.getElementById('btnIdle').addEventListener('click', () => guarded(() => loadIdling()).catch(err => setStatus(err.message, false)));
+    document.getElementById('btnInsights').addEventListener('click', () => guarded(async () => {
+      updateInsights();
+      setStatus('Insights updated from loaded data.');
+    }).catch(err => setStatus(err.message, false)));
+    document.getElementById('btnLast24h').addEventListener('click', () => setTimeRange('last24h'));
+    document.getElementById('btnLast7d').addEventListener('click', () => setTimeRange('last7d'));
+    document.getElementById('btnToday').addEventListener('click', () => setTimeRange('today'));
+    document.getElementById('btnYesterday').addEventListener('click', () => setTimeRange('yesterday'));
+    [
+      'speedThreshold', 'idleThreshold', 'topN', 'scoreThreshold',
+      'wSpeeding', 'wBraking', 'wAccel', 'wCornering', 'wStopSign'
+    ].forEach(id => {
+      document.getElementById(id).addEventListener('change', () => {
+        updateInsights();
+        setStatus('Thresholds/formula updated.');
+      });
+    });
+
+    sourceEl.addEventListener('change', () => {
+      setStatus(`Source switched to "${selectedSource()}". Click a load button to refresh data.`);
+    });
+    tabOpsBtn.addEventListener('click', () => activateTab('ops'));
+    tabGeoBtn.addEventListener('click', () => activateTab('geo'));
+
+    init();
+  </script>
+</body>
+</html>

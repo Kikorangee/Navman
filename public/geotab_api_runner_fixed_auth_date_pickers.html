@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Geotab API Runner — Fixed Auth + Date Pickers</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      backdrop-filter: blur(8px);
+    }
+    input, select, textarea {
+      margin: 8px 0;
+      padding: 12px 16px;
+      width: 100%;
+      box-sizing: border-box;
+      border: 2px solid #e1e8ed;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      background: #fff;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #667eea;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    button {
+      cursor: pointer;
+      margin: 6px 3px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    button:before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+      transition: left 0.5s;
+    }
+    button:hover:before { left: 100%; }
+    .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+    .btn-success { background: linear-gradient(135deg, #56ab2f, #76c893); color: #fff; }
+    .btn-info    { background: linear-gradient(135deg, #4dabf7, #74c0fc); color: #fff; }
+    .btn-danger  { background: linear-gradient(135deg, #ff6b6b, #ee5a52); color: #fff; }
+
+    .error { color: #721c24; background: #f8d7da; padding: 12px; border-radius: 8px; margin: 12px 0; border-left: 4px solid #dc3545; }
+    .success { color: #155724; background: #d4edda; padding: 12px; border-radius: 8px; margin: 12px 0; border-left: 4px solid #28a745; }
+    .warning { color: #856404; background: #fff3cd; padding: 12px; border-radius: 8px; margin: 12px 0; border-left: 4px solid #ffc107; }
+
+    .result { white-space: pre-wrap; background: #f8f9fa; padding: 16px; margin: 12px 0; border-radius: 8px; max-height: 420px; overflow-y: auto; border: 1px solid #dee2e6; font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace; font-size: 13px; }
+
+    .section { padding: 24px; margin: 16px 0; border-radius: 12px; background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.06); position: relative; }
+    .section:before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #667eea, #764ba2); }
+    h3 { margin-top: 0; color: #2c3e50; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .category { background: #f8f9fa; padding: 16px; margin: 12px 0; border-radius: 8px; border: 1px solid #e9ecef; }
+    .example-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
+    .example-btn { padding: 10px 16px; background: linear-gradient(135deg, #56ab2f, #76c893); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; }
+
+    .geotab-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 24px; margin: -20px -20px 24px; border-radius: 12px 12px 0 0; text-align: center; position: relative; overflow: hidden; }
+    .status-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+    .status-connected { background: #28a745; box-shadow: 0 0 8px rgba(40,167,69,0.4); }
+    .status-disconnected { background: #dc3545; box-shadow: 0 0 8px rgba(220,53,69,0.4); }
+    .button-group { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+    .button-group button { flex: 1; min-width: 120px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="geotab-header">
+      <h2>🚀 Geotab API Runner</h2>
+      <p>Fixed authentication flow • Clean date pickers • Safer defaults</p>
+    </div>
+
+    <div class="section">
+      <h3>📅 Date Range & Settings</h3>
+      <div class="category">
+        <h4>📅 Date Range Selection</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <label style="display:block;margin-bottom:4px;font-weight:600;color:#495057;">From Date & Time</label>
+            <input type="datetime-local" id="fromDateTime" />
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:4px;font-weight:600;color:#495057;">To Date & Time</label>
+            <input type="datetime-local" id="toDateTime" />
+          </div>
+        </div>
+        <div style="margin-top: 12px;">
+          <label style="display:block;margin-bottom:4px;font-weight:600;color:#495057;">🚗 Number of Vehicles</label>
+          <input type="number" id="vehicleLimit" value="50" min="1" max="1000" style="width:200px;" />
+        </div>
+        <div style="margin-top: 8px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button onclick="setTimeRange('last24h')" class="example-btn">Last 24 Hours</button>
+          <button onclick="setTimeRange('last7d')" class="example-btn">Last 7 Days</button>
+          <button onclick="setTimeRange('today')" class="example-btn">Today</button>
+          <button onclick="setTimeRange('yesterday')" class="example-btn">Yesterday</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>🚗 Group-Based Odometer Collection</h3>
+      <div class="warning">
+        <strong>Instructions:</strong> 1) Find your Group ID & Diagnostic ID with the examples. 2) Enter them below. 3) Click run.
+      </div>
+      <input id="groupId" placeholder="Group ID (e.g., GroupCompanyId)" value="GroupCompanyId" />
+      <input id="diagnosticId" placeholder="Diagnostic ID (e.g., DiagnosticOdometerId)" value="DiagnosticOdometerId" />
+      <button id="runGroupOdometer" class="btn-success">Get Group Odometer Readings</button>
+      <div id="groupOdometerResult"></div>
+    </div>
+
+    <div class="section">
+      <h3>🔐 Authentication</h3>
+      <div class="warning"><strong>Note:</strong> Credentials stay in this browser session only.</div>
+      <input id="server" placeholder="Server (e.g., my.geotab.com)" />
+      <input id="database" placeholder="Database" />
+      <input id="username" placeholder="Username (email)" />
+      <input id="password" type="password" placeholder="Password" />
+      <button id="authButton" class="btn-primary"><span class="status-indicator status-disconnected"></span> Authenticate</button>
+      <div id="authResult"></div>
+    </div>
+
+    <div id="apiSection" style="display:none;" class="section">
+      <h3>🔧 API Testing</h3>
+      <div class="success"><span class="status-indicator status-connected"></span> Connected</div>
+      <div class="category">
+        <p><strong>🖥️ Server:</strong> <span id="connectedServer"></span></p>
+        <p><strong>🗄️ Database:</strong> <span id="connectedDB"></span></p>
+        <p><strong>👤 User:</strong> <span id="connectedUser"></span></p>
+      </div>
+
+      <select id="method">
+        <option value="Get">Get</option>
+        <option value="Add">Add</option>
+        <option value="Set">Set</option>
+        <option value="Remove">Remove</option>
+        <option value="ExecuteMultiCall">ExecuteMultiCall</option>
+      </select>
+      <input id="typeName" placeholder="typeName" value="Device" />
+      <textarea id="params" placeholder='Parameters (JSON)' rows="4">{"resultsLimit": 1000}</textarea>
+
+      <div class="button-group">
+        <button id="runApi" class="btn-success">Run API Call</button>
+        <button id="testConnection" class="btn-info">Test Connection</button>
+        <button id="downloadCsv" class="btn-info">Download CSV</button>
+        <button id="logout" class="btn-danger">Logout</button>
+      </div>
+      <div id="apiResult"></div>
+    </div>
+
+    <div class="section">
+      <h3>📋 Quick API Examples</h3>
+      <div class="category">
+        <h4>🚗 Vehicle & Device</h4>
+        <div class="example-grid">
+          <button class="example-btn" onclick="loadExample('devices')">All Devices</button>
+          <button class="example-btn" onclick="loadExample('device-status')">Device Status</button>
+          <button class="example-btn" onclick="loadExample('device-odometer')">Odometer Data</button>
+          <button class="example-btn" onclick="loadExample('devices-in-group')">Group Devices</button>
+        </div>
+      </div>
+      <div class="category">
+        <h4>📍 Trips & Location</h4>
+        <div class="example-grid">
+          <button class="example-btn" onclick="loadExample('gps-data')">GPS Data</button>
+          <button class="example-btn" onclick="loadExample('trips')">Recent Trips</button>
+          <button class="example-btn" onclick="loadExample('stops')">Stops</button>
+          <button class="example-btn" onclick="loadExample('zones')">All Zones</button>
+        </div>
+      </div>
+      <div class="category">
+        <h4>⚙️ Engine & Diagnostics</h4>
+        <div class="example-grid">
+          <button class="example-btn" onclick="loadExample('fuel-data')">Fuel Data</button>
+          <button class="example-btn" onclick="loadExample('engine-data')">Ignition</button>
+          <button class="example-btn" onclick="loadExample('engine-hours')">Engine Hours (Adjusted)</button>
+          <button class="example-btn" onclick="loadExample('engine-hours-raw')">Engine Hours (Raw)</button>
+          <button class="example-btn" onclick="loadExample('fault-data')">Faults</button>
+          <button class="example-btn" onclick="loadExample('diagnostics')">Diagnostics</button>
+        </div>
+      </div>
+      <div class="category">
+        <h4>🔍 Helper Queries</h4>
+        <div class="example-grid">
+          <button class="example-btn" onclick="loadExample('find-groups')">Find Group IDs</button>
+          <button class="example-btn" onclick="loadExample('find-diagnostics')">Find Diagnostic IDs</button>
+          <button class="example-btn" onclick="loadExample('odometer-diagnostics')">Odometer Diagnostics</button>
+          <button class="example-btn" onclick="loadExample('group-devices')">Devices in Group</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let credentials = null;
+    let serverUsed = null;
+    let lastApiResult = null;
+
+    function showMessage(elementId, message, type = 'info') {
+      const el = document.getElementById(elementId);
+      el.innerHTML = `<div class="${type}">${message}</div>`;
+    }
+
+    // Core JSON-RPC call
+    async function callGeotabAPI(method, params = {}) {
+      if (!serverUsed) throw new Error('No server set. Authenticate first.');
+      const body = { method, params: credentials ? { ...params, credentials } : params };
+      const resp = await fetch(`https://${serverUsed}/apiv1`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(body)
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+      const data = await resp.json();
+      if (data.error) throw new Error(data.error.message || data.error.name || JSON.stringify(data.error));
+      return data.result;
+    }
+
+    // Auth flow with redirect handling
+    document.getElementById('authButton').onclick = async function () {
+      const server = document.getElementById('server').value.trim();
+      const database = document.getElementById('database').value.trim();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      document.getElementById('authResult').innerHTML = '';
+      if (!server || !database || !username || !password) { showMessage('authResult', '❌ Please fill in all fields', 'error'); return; }
+      try {
+        showMessage('authResult', '🔍 Authenticating...', 'warning');
+        serverUsed = server; // start with the value typed (e.g., my.geotab.com)
+        const first = await callGeotabAPI('Authenticate', { userName: username, password, database });
+        // If redirected, hit the returned path
+        if (first.path && first.path !== 'ThisServer') {
+          serverUsed = first.path; // e.g., myXX.geotab.com
+          const second = await callGeotabAPI('Authenticate', { userName: username, password, database });
+          credentials = second.credentials;
+        } else {
+          credentials = first.credentials;
+        }
+        // UI changes
+        showMessage('authResult', '✅ Authentication successful', 'success');
+        document.getElementById('connectedServer').textContent = serverUsed;
+        document.getElementById('connectedDB').textContent = database;
+        document.getElementById('connectedUser').textContent = username;
+        document.getElementById('apiSection').style.display = '';
+        const btn = document.getElementById('authButton');
+        btn.innerHTML = '<span class="status-indicator status-connected"></span> Connected';
+        btn.className = 'btn-success';
+      } catch (err) {
+        console.error(err);
+        showMessage('authResult', `❌ Authentication failed: ${err.message}`, 'error');
+      }
+    };
+
+    // Logout
+    document.getElementById('logout').onclick = function () {
+      credentials = null; serverUsed = null; lastApiResult = null;
+      document.getElementById('apiSection').style.display = 'none';
+      document.getElementById('authResult').innerHTML = '';
+      document.getElementById('apiResult').innerHTML = '';
+      const btn = document.getElementById('authButton');
+      btn.innerHTML = '<span class="status-indicator status-disconnected"></span> Authenticate';
+      btn.className = 'btn-primary';
+      ['server','database','username','password'].forEach(id => document.getElementById(id).value = '');
+    };
+
+    // Date helpers (single source of truth)
+    function formatForInput(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth()+1).padStart(2,'0');
+      const d = String(date.getDate()).padStart(2,'0');
+      const h = String(date.getHours()).padStart(2,'0');
+      const min = String(date.getMinutes()).padStart(2,'0');
+      return `${y}-${m}-${d}T${h}:${min}`;
+    }
+    function initializeDatePickers() {
+      const now = new Date();
+      const yesterday = new Date(now.getTime() - 24*60*60*1000);
+      document.getElementById('fromDateTime').value = formatForInput(yesterday);
+      document.getElementById('toDateTime').value = formatForInput(now);
+    }
+    function setTimeRange(range) {
+      const now = new Date();
+      let fromDate = new Date(now.getTime() - 24*60*60*1000);
+      let toDate = now;
+      if (range === 'last7d') fromDate = new Date(now.getTime() - 7*24*60*60*1000);
+      if (range === 'today') fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0,0,0);
+      if (range === 'yesterday') {
+        const y = new Date(now.getTime() - 24*60*60*1000);
+        fromDate = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 0,0,0);
+        toDate = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 23,59,59);
+      }
+      document.getElementById('fromDateTime').value = formatForInput(fromDate);
+      document.getElementById('toDateTime').value = formatForInput(toDate);
+    }
+    function getDateRange() {
+      const f = document.getElementById('fromDateTime').value;
+      const t = document.getElementById('toDateTime').value;
+      if (!f || !t) {
+        const now = new Date();
+        const y = new Date(now.getTime() - 24*60*60*1000);
+        return { fromDate: y.toISOString(), toDate: now.toISOString() };
+      }
+      return { fromDate: new Date(f).toISOString(), toDate: new Date(t).toISOString() };
+    }
+
+    // Examples (built at click time so date range is fresh)
+    function loadExample(which) {
+      const dateRange = getDateRange();
+      const vehicleLimit = parseInt(document.getElementById('vehicleLimit').value) || 50;
+      const examples = {
+        'devices': { method:'Get', typeName:'Device', params:`{"resultsLimit": ${vehicleLimit}}` },
+        'device-status': { method:'Get', typeName:'DeviceStatusInfo', params:`{"resultsLimit": ${Math.min(vehicleLimit,10)}}` },
+        'device-odometer': { method:'Get', typeName:'StatusData', params:`{"search":{"diagnosticSearch":{"id":"DiagnosticOdometerId"},"fromDate":"${dateRange.fromDate}","toDate":"${dateRange.toDate}"},"resultsLimit": ${vehicleLimit}}` },
+        'devices-in-group': { method:'Get', typeName:'Device', params:`{"search":{"groups":[{"id":"GroupCompanyId"}]},"resultsLimit": ${vehicleLimit}}` },
+        'gps-data': { method:'Get', typeName:'LogRecord', params:`{"search":{"fromDate":"${dateRange.fromDate}","toDate":"${dateRange.toDate}"},"resultsLimit": ${vehicleLimit*2}}` },
+        'trips': { method:'Get', typeName:'Trip', params:`{"search":{"fromDate":"${dateRange.fromDate}","toDate":"${dateRange.toDate}"},"resultsLimit": ${vehicleLimit}}` },
+        'stops': { method:'Get', typeName:'Stop', params:`{"search":{"fromDate":"${dateRange.fromDate}","toDate":"${dateRange.toDate}"},"resultsLimit": ${vehicleLimit}}` },
+        'zones': { method:'Get', typeName:'Zone', params:`{"resultsLimit": ${Math.min(vehicleLimit,50)}}` },
+        'fuel-data': { method:'Get', typeName:'StatusData', params:`{"search":{"diagnosticSearch":{"id":"DiagnosticFuelLevelId"},"fromDate":"${dateRange.fromDate}","toDate":"${dateRange.toDate}"},"resultsLimit": ${vehicleLimit}}` },
+        'engine-data': { method:'Get', typeName:'StatusData', params:`{"search":{"diagnosticSearch":{"id":"DiagnosticIgnitionId"},"fromDate":"${dateRange.fromDate}","toDate":"${dateRange.toDate}"},"resultsLimit": ${vehicleLimit}}` },
+        'engine-hours': { method:'Get', typeName:'StatusData', params:`{"search":{"diagnosticSearch":{"id":"DiagnosticEngineHoursAdjustmentId"},"fromDate":"${dateRange.fromDate}","toDate":"${dateRange.toDate}"},"resultsLimit": ${vehicleLimit}}` },
+        'engine-hours-raw': { method:'Get', typeName:'StatusData', params:`{"search":{"diagnosticSearch":{"id":"DiagnosticEngineHoursId"},"fromDate":"${dateRange.fromDate}","toDate":"${dateRange.toDate}"},"resultsLimit": ${vehicleLimit}}` },
+        'fault-data': { method:'Get', typeName:'FaultData', params:`{"search":{"fromDate":"${dateRange.fromDate}","toDate":"${dateRange.toDate}"},"resultsLimit": ${Math.min(vehicleLimit,20)}}` },
+        'diagnostics': { method:'Get', typeName:'Diagnostic', params:`{"resultsLimit": ${Math.min(vehicleLimit*2,100)}}` },
+        'find-groups': { method:'Get', typeName:'Group', params:`{"search":{"name":"%"},"resultsLimit": ${Math.min(vehicleLimit,50)}}` },
+        'find-diagnostics': { method:'Get', typeName:'Diagnostic', params:`{"resultsLimit": ${Math.min(vehicleLimit*2,100)}}` },
+        'odometer-diagnostics': { method:'Get', typeName:'Diagnostic', params:`{"search":{"name":"%odometer%"},"resultsLimit": ${Math.min(vehicleLimit,50)}}` },
+        'group-devices': { method:'Get', typeName:'Device', params:`{"search":{"groups":[{"id":"GroupCompanyId"}]},"resultsLimit": ${vehicleLimit}}` }
+      };
+      const ex = examples[which];
+      if (ex) {
+        document.getElementById('method').value = ex.method;
+        document.getElementById('typeName').value = ex.typeName;
+        document.getElementById('params').value = ex.params;
+        document.getElementById('apiSection').scrollIntoView({behavior:'smooth'});
+      }
+    }
+
+    // Run API
+    document.getElementById('runApi').onclick = async function () {
+      if (!credentials) { showMessage('apiResult', '❌ Not authenticated.', 'error'); return; }
+      const method = document.getElementById('method').value;
+      const typeName = document.getElementById('typeName').value.trim();
+      let params = {};
+      const raw = document.getElementById('params').value.trim();
+      if (raw) { try { params = JSON.parse(raw); } catch (e) { showMessage('apiResult', `❌ Invalid JSON: ${e.message}`, 'error'); return; } }
+      if (typeName && method !== 'ExecuteMultiCall') params.typeName = typeName;
+      try {
+        showMessage('apiResult', '🔍 Calling API...', 'warning');
+        const result = await callGeotabAPI(method, params);
+        const count = Array.isArray(result) ? result.length : (result ? 1 : 0);
+        showMessage('apiResult', `✅ Success! ${count} result(s)`, 'success');
+        document.getElementById('apiResult').innerHTML += `<div class="result">${JSON.stringify(result, null, 2)}</div>`;
+        lastApiResult = { method, typeName, data: result, timestamp: new Date().toISOString() };
+      } catch (err) {
+        console.error(err);
+        showMessage('apiResult', `❌ API call failed: ${err.message}`, 'error');
+      }
+    };
+
+    // Test connection (use a cheap call guaranteed to work)
+    document.getElementById('testConnection').onclick = async function () {
+      if (!credentials) { showMessage('apiResult', '❌ Not authenticated.', 'error'); return; }
+      try {
+        showMessage('apiResult', '🔬 Testing connection...', 'warning');
+        const result = await callGeotabAPI('Get', { typeName: 'User', search: { name: '%' }, resultsLimit: 1 });
+        showMessage('apiResult', `✅ Connection test returned ${result.length} user(s).`, 'success');
+        document.getElementById('apiResult').innerHTML += `<div class="result">${JSON.stringify(result, null, 2)}</div>`;
+      } catch (err) {
+        console.error(err);
+        showMessage('apiResult', `❌ Connection test failed: ${err.message}`, 'error');
+      }
+    };
+
+    // Group odometer via ExecuteMultiCall
+    document.getElementById('runGroupOdometer').onclick = async function () {
+      if (!credentials) { showMessage('groupOdometerResult', '❌ Please authenticate first', 'error'); return; }
+      const groupId = document.getElementById('groupId').value.trim();
+      const diagnosticId = document.getElementById('diagnosticId').value.trim();
+      if (!groupId || !diagnosticId) { showMessage('groupOdometerResult', '❌ Enter Group ID and Diagnostic ID', 'error'); return; }
+      try {
+        showMessage('groupOdometerResult', '🔍 Fetching devices in group...', 'warning');
+        const limit = parseInt(document.getElementById('vehicleLimit').value) || 50;
+        const devices = await callGeotabAPI('Get', { typeName: 'Device', search: { groups: [{ id: groupId }] }, resultsLimit: limit });
+        if (!devices || devices.length === 0) { showMessage('groupOdometerResult', '❌ No devices found in group', 'error'); return; }
+        showMessage('groupOdometerResult', `✅ Found ${devices.length} devices. Querying odometer...`, 'success');
+        const dateRange = getDateRange();
+        const calls = devices.map(d => ({ method: 'Get', params: { typeName: 'StatusData', search: { fromDate: dateRange.fromDate, toDate: dateRange.toDate, diagnosticSearch: { id: diagnosticId }, deviceSearch: { id: d.id } }, resultsLimit: 1 } }));
+        const multi = await callGeotabAPI('ExecuteMultiCall', { calls });
+        const mapped = devices.map((d, i) => {
+          const sd = multi[i] && multi[i][0];
+          return {
+            deviceId: d.id,
+            name: d.name,
+            vehicleIdentificationNumber: d.vehicleIdentificationNumber || 'N/A',
+            serialNumber: d.serialNumber || 'N/A',
+            odometer: sd && typeof sd.data !== 'undefined' ? sd.data : null,
+            odometerDate: sd ? sd.dateTime : null,
+            status: sd && typeof sd.data !== 'undefined' ? (sd.data > 0 ? 'Success' : 'Zero Reading') : 'No Data'
+          };
+        });
+        const withData = mapped.filter(r => r.odometer && r.odometer > 0).length;
+        const zero = mapped.filter(r => r.odometer === 0).length;
+        const none = mapped.filter(r => r.odometer === null).length;
+        showMessage('groupOdometerResult', `📊 Summary — Total: ${mapped.length} | With data: ${withData} | Zero: ${zero} | No data: ${none}`, 'success');
+        document.getElementById('groupOdometerResult').innerHTML += `<div class="result">${JSON.stringify(mapped, null, 2)}</div>`;
+        lastApiResult = { method: 'ExecuteMultiCall', typeName: 'GroupOdometer', data: multi, timestamp: new Date().toISOString(), deviceMapping: mapped };
+      } catch (err) {
+        console.error(err);
+        showMessage('groupOdometerResult', `❌ Error: ${err.message}`, 'error');
+      }
+    };
+
+    // CSV download
+    document.getElementById('downloadCsv').onclick = function () {
+      if (!lastApiResult) { showMessage('apiResult', '⚠️ Run something first.', 'warning'); return; }
+      const csv = convertToCSV(lastApiResult.data, lastApiResult.method, lastApiResult.typeName);
+      if (!csv) { showMessage('apiResult', '⚠️ Nothing to export.', 'warning'); return; }
+      const ts = new Date().toISOString().slice(0,19).replace(/[:.]/g,'-');
+      const fn = `Geotab_${lastApiResult.method || 'API'}_${lastApiResult.typeName || 'Data'}_${ts}.csv`;
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      a.href = url; a.download = fn; a.style.display = 'none'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      showMessage('apiResult', `✅ CSV downloaded: ${fn}`, 'success');
+    };
+
+    function convertToCSV(data, method, typeName) {
+      if (!data) return '';
+      let out = '';
+      if (Array.isArray(data)) {
+        if (typeName === 'GroupOdometer' && lastApiResult.deviceMapping) {
+          out = 'Device_ID,Vehicle_Name,VIN,Serial_Number,Odometer_Reading,Date_Time,Status\n';
+          lastApiResult.deviceMapping.forEach(d => {
+            out += `"${d.deviceId}","${d.name}","${d.vehicleIdentificationNumber}","${d.serialNumber}",${d.odometer ?? ''},"${d.odometerDate ?? ''}","${d.status}"\n`;
+          });
+          return out;
+        }
+        if (method === 'ExecuteMultiCall') {
+          out = 'Call_Index,Result_Count,Status,Data_Preview\n';
+          data.forEach((r, i) => {
+            const count = (r && Array.isArray(r)) ? r.length : 0;
+            const preview = count ? JSON.stringify(r[0]).slice(0,100).replace(/"/g,'""')+"..." : 'No data';
+            out += `${i+1},${count},${count? 'Success':'Failed'},"${preview}"\n`;
+          });
+          return out;
+        }
+        if (!data.length) return 'No data';
+        const headers = Object.keys(data[0]);
+        out += headers.map(h=>`"${h}"`).join(',') + '\n';
+        data.forEach(row => {
+          out += headers.map(h => {
+            const v = row[h];
+            if (v === null || v === undefined) return '""';
+            if (typeof v === 'object') return `"${JSON.stringify(v).replace(/"/g,'""')}"`;
+            return `"${String(v).replace(/"/g,'""')}"`;
+          }).join(',') + '\n';
+        });
+        return out;
+      }
+      if (typeof data === 'object') {
+        const headers = Object.keys(data);
+        out += headers.map(h=>`"${h}"`).join(',') + '\n';
+        out += headers.map(h => {
+          const v = data[h];
+          if (v === null || v === undefined) return '""';
+          if (typeof v === 'object') return `"${JSON.stringify(v).replace(/"/g,'""')}"`;
+          return `"${String(v).replace(/"/g,'""')}"`;
+        }).join(',') + '\n';
+        return out;
+      }
+      return `"Value"\n"${data}"`;
+    }
+
+    // boot
+    window.addEventListener('load', () => {
+      initializeDatePickers();
+      if (window.parent !== window) console.log('Running inside Geotab iframe (Add-In).');
+      else console.log('Running standalone (CORS may block calls unless allowed).');
+    });
+  </script>
+</body>
+</html>
