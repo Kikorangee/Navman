@@ -1,0 +1,19 @@
+﻿{
+  "NAVMAN_USER": "",
+  "NAVMAN_PASS": "",
+  "NAVMAN_APPID": "00000000-0000-0000-0000-000000000000",
+  "NAVMAN_CLIENTID": "00000000-0000-0000-0000-000000000000",
+  "NAVMAN_OWNERID": "",
+  "NAVMAN_USERID": "",
+  "NAVMAN_SESSION": "",
+  "NAVMAN_LOGIN_URI": "https://onlineavl2api-au.navmanwireless.com/onlineavl/api/V1.9/service.asmx",
+  "GEOTAB_SERVER": "my.geotab.com",
+  "GEOTAB_DATABASE": "",
+  "GEOTAB_USER": "",
+  "GEOTAB_PASS": "",
+  "GEOTAB_SESSION_SERVER": "",
+  "GEOTAB_SESSION_DATABASE": "",
+  "GEOTAB_SESSION_USER": "",
+  "GEOTAB_SESSIONID": "",
+  "GEOTAB_SESSION_EXPIRES": 0
+}

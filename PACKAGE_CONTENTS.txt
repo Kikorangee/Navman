@@ -1,0 +1,15 @@
+Files included in this package:
+- config.json (live credentials/session)
+- server.js
+- package.json
+- package-lock.json
+- public/index.html
+- public/geotab_api_runner_fixed_auth_date_pickers.html
+- config.example.json
+- QUICK_USER_GUIDE.md
+- RUN_DASHBOARD.bat
+
+For customer delivery:
+1) `config.json` is prefilled for live use.
+2) Run RUN_DASHBOARD.bat
+3) If credentials change later, edit config.json

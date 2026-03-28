@@ -1,0 +1,19 @@
+{
+    "NAVMAN_USER": "tdg.mike.api",
+    "NAVMAN_PASS": "3YUaUkj6",
+    "NAVMAN_APPID": "00000000-0000-0000-0000-000000000000",
+    "NAVMAN_CLIENTID": "00000000-0000-0000-0000-000000000000",
+    "NAVMAN_OWNERID": "2ac5cf54-a5e2-4290-b549-5ec2806029e0",
+    "NAVMAN_USERID": "78e19b8a-2fd6-4c1b-9d2e-356da243fd85",
+    "NAVMAN_SESSION": "PUT_FRESH_SESSION_GUID_HERE",
+    "GEOTAB_SERVER": "my.geotab.com",
+    "GEOTAB_DATABASE": "hydrotech",
+    "GEOTAB_USER": "francis@directt.co.nz",
+    "GEOTAB_PASS": "@fr4nc1sWynn5",
+    "GEOTAB_SESSION_SERVER": "my.geotab.com",
+    "GEOTAB_SESSION_DATABASE": "hydrotech",
+    "GEOTAB_SESSION_USER": "francis@directt.co.nz",
+    "GEOTAB_SESSIONID": "M-Ih5WLqsgaFZr930wFYmg",
+    "GEOTAB_SESSION_EXPIRES": 1774384661352,
+    "NAVMAN_LOGIN_URI": "https://onlineavl2api-au.navmanwireless.com/onlineavl/api/V1.9/service.asmx"
+}
